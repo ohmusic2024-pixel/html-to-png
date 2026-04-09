@@ -29,12 +29,35 @@ app.post('/screenshot', async (req, res) => {
     });
 
     const page = await browser.newPage();
-    await page.setViewport({ width: 530, height: 950 });
+    await page.setViewport({ width: 380, height: 900 });
     await page.setContent(html, { waitUntil: 'networkidle0' });
-    
+
+    // Remove gray background and get exact card height
+    await page.evaluate(() => {
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.body.style.background = 'transparent';
+    });
+
+    // Get actual card height
+    const cardHeight = await page.evaluate(() => {
+      const card = document.querySelector('.card') || document.body;
+      return card.scrollHeight;
+    });
+
+    // Resize viewport to match card height
+    await page.setViewport({ width: 380, height: cardHeight });
+
     const screenshot = await page.screenshot({
       type: 'png',
-      fullPage: true
+      fullPage: false,
+      omitBackground: true,
+      clip: {
+        x: 0,
+        y: 0,
+        width: 380,
+        height: cardHeight
+      }
     });
 
     res.set('Content-Type', 'image/png');

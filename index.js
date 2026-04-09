@@ -3,10 +3,18 @@ const puppeteer = require('puppeteer');
 const app = express();
 
 app.use(express.json({ limit: '10mb' }));
+app.use(express.text({ limit: '10mb' }));
 
 app.post('/screenshot', async (req, res) => {
-  const { html } = req.body;
-  if (!html) return res.status(400).json({ error: 'HTML is required' });
+  let html = req.body;
+  
+  if (typeof html === 'object') {
+    html = html.html;
+  }
+  
+  if (!html) {
+    return res.status(400).json({ error: 'HTML is required' });
+  }
 
   let browser;
   try {
